@@ -71,3 +71,31 @@ else:
     )
 
     st.plotly_chart(fig3, use_container_width=True)
+    # 🔥 위험도 점수 계산
+total_count = filtered["count"].sum()
+
+risk_df = filtered.groupby("side_effect")["count"].sum().reset_index()
+risk_df["risk_score"] = (risk_df["count"] / total_count) * 100
+
+# 정렬
+risk_df = risk_df.sort_values(by="risk_score", ascending=False)
+st.subheader("⚠️ 부작용 위험도 분석 (%)")
+
+fig4 = px.bar(
+    risk_df,
+    x="risk_score",
+    y="side_effect",
+    orientation="h",
+    title="부작용 위험도 (비율 기반)",
+    color="risk_score",
+    color_continuous_scale="Reds"
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+# 가장 위험한 부작용
+top_effect = risk_df.iloc[0]
+
+st.error(f"""
+🚨 가장 위험도가 높은 부작용: **{top_effect['side_effect']}**
+- 위험도: {top_effect['risk_score']:.1f}%
+""")
